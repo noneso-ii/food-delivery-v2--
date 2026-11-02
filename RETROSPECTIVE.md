@@ -1,6 +1,6 @@
 # Ретроспектива Спринта 2
 
-**Ссылка на Демо-видео:** [ВСТАВЬТЕ СЮДА ССЫЛКУ НА ВАШЕ ВИДЕО В ОБЛАКЕ]
+**Ссылка на Демо-видео:** https://yandex.ru/video/preview/6793259459858883093?utm_source=copy_link&utm_medium=social&utm_campaign=share
 
 ## Start / Stop / Continue
 
