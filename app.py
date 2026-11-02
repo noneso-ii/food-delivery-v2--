@@ -26,7 +26,7 @@ MENU = [
     {"id": 4, "name": "Кока-кола", "price": 100}
 ]
 
-# Простой HTML-интерфейс в виде строки для быстрой интеграции без создания папки templates
+# Простой HTML-интерфейс в виде строки
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ru">
@@ -57,9 +57,9 @@ HTML_TEMPLATE = """
             {% for item in menu %}
             <li class="flex">
                 <span><strong>{{ item.name }}</strong> — {{ item.price }} руб.</span>
-                <form action="/add_to_order" method="POST" style="margin: 0;">
+                <form action="/checkout" method="POST" style="margin: 0;">
                     <input type="hidden" name="item_id" value="{{ item.id }}">
-                    <button type="submit">Добавить в корзину</button>
+                    <button type="submit">Купить в 1 клик</button>
                 </form>
             </li>
             {% endfor %}
@@ -67,12 +67,11 @@ HTML_TEMPLATE = """
     </div>
 
     <div class="card">
-        <h2>Оформление заказа</h2>
+        <h2>Оформление с промокодом</h2>
         <form action="/checkout" method="POST">
-            <p>Промокод (введите SAVE10 для скидки 10%):</p>
-            <input type="text" name="promocode" placeholder="Промокод">
-            <br><br>
-            <button type="submit" style="background: #ffc107; color: black;">Оформить заказ</button>
+            <p>Хотите скидку? Введите промокод SAVE10 (Применится к демо-заказу на 1000 руб):</p>
+            <input type="text" name="promocode" placeholder="SAVE10" style="padding: 5px;">
+            <button type="submit" style="background: #ffc107; color: black;">Оформить демо-заказ</button>
         </form>
     </div>
 
@@ -101,29 +100,30 @@ def index():
     
     return render_template_string(HTML_TEMPLATE, menu=MENU, orders=orders, bonus_balance=bonus["balance"])
 
-@app.route('/checkout', method=['POST'])
+@app.route('/checkout', methods=['POST'])  # ИСПРАВЛЕНО: 'methods' вместо 'method'
 def checkout():
-    # Симуляция заказа по умолчанию (две пиццы)
     total = 1000 
     promocode = request.form.get('promocode', '').strip()
     
     if promocode == "SAVE10":
-        total = int(total * 0.9) # Применяем скидку 10%
+        total = int(total * 0.9)  # Скидка 10%
         
-    bonuses_earned = int(total * 0.1) # Кэшбэк 10%
+    bonuses_earned = int(total * 0.1)  # Кэшбэк 10%
     
-    # Обновляем историю заказов
+    # Обновляем историю заказов с очисткой файла
     with open(ORDERS_FILE, 'r+', encoding='utf-8') as f:
         orders = json.load(f)
         orders.append({"total": total, "bonuses_earned": bonuses_earned})
         f.seek(0)
+        f.truncate()  # ИСПРАВЛЕНО: гарантирует чистоту файла
         json.dump(orders, f, ensure_ascii=False, indent=4)
         
-    # Обновляем бонусы
+    # Обновляем бонусы с очисткой файла
     with open(BONUS_FILE, 'r+', encoding='utf-8') as f:
         bonus = json.load(f)
         bonus["balance"] += bonuses_earned
         f.seek(0)
+        f.truncate()  # ИСПРАВЛЕНО: гарантирует чистоту файла
         json.dump(bonus, f, ensure_ascii=False, indent=4)
         
     return f"<h3>Заказ успешно оформлен! Сумма: {total} руб. Начислено бонусов: {bonuses_earned}.</h3><br><a href='/'>Назад на главную</a>"
